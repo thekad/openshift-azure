@@ -111,6 +111,10 @@ base64 -d <<'EOF' | cat >/etc/yum.repos.d/kickstart.repo
 $(base64 <data/etc/yum.repos.d/kickstart.repo)
 EOF
 
+base64 -d <<'EOF' | cat >/etc/yum.repos.d/azurecore.repo
+$(base64 <data/etc/yum.repos.d/azurecore.repo)
+EOF
+
 cat >/var/lib/yum/client-cert.pem <<'EOF'
 $(cat client-cert.pem)
 EOF
@@ -164,7 +168,10 @@ yum -y install \
     tree \
     find \
     WALinuxAgent \
-    yum-utils
+    yum-utils \
+    azure-mdsd \
+    azure-security \
+    azsec-monitor
 yum clean all
 
 base64 -d <<'EOF' | tar -C / -x
@@ -174,7 +181,10 @@ EOF
 # not commited with a : so that Windows users can check out the repo
 mv /etc/docker/certs.d/docker-registry.default.svc-5000 /etc/docker/certs.d/docker-registry.default.svc:5000
 
-rm /var/lib/yum/client-cert.pem /var/lib/yum/client-key.pem
+rm -fv /etc/yum.repos.d/kickstart.repo \
+  /etc/yum.repos.d/azurecore.repo \
+  /var/lib/yum/client-cert.pem \
+  /var/lib/yum/client-key.pem
 
 mkdir /var/lib/etcd
 
