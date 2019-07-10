@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -34,6 +35,7 @@ type startup struct {
 	testConfig api.TestConfig
 }
 
+// New returns a new startup entrypoint
 func New(log *logrus.Entry, cs *api.OpenShiftManagedCluster, testConfig api.TestConfig) *startup {
 	return &startup{log: log, cs: cs, testConfig: testConfig}
 }
@@ -135,9 +137,15 @@ func (s *startup) writeFiles(role api.AgentPoolProfileRole, w writers.Writer, ho
 
 		b, err := template.Template(filepath, tmpl, map[string]interface{}{
 			"Deref": func(pi *int) int { return *pi },
+			"XMLEscape": func(s string) (string, error) {
+				var b bytes.Buffer
+				err := xml.EscapeText(&b, []byte(s))
+				return b.String(), err
+			},
 		}, map[string]interface{}{
 			"ContainerService": s.cs,
 			"Config":           &s.cs.Config,
+			"AzProfile":        s.cs.Properties.AzProfile,
 			"Derived":          derived,
 			"Role":             role,
 			"Hostname":         hostname,
@@ -161,6 +169,7 @@ func (s *startup) writeFiles(role api.AgentPoolProfileRole, w writers.Writer, ho
 			perm = 0644
 		}
 
+		s.log.Debug(fmt.Sprintf("Writing file %s", filepath))
 		filepath = "/host" + filepath
 
 		parentDir := path.Dir(filepath)
@@ -173,6 +182,8 @@ func (s *startup) writeFiles(role api.AgentPoolProfileRole, w writers.Writer, ho
 		if err != nil {
 			return err
 		}
+
+		s.log.Debug(fmt.Sprintf("Wrote file %s", filepath))
 	}
 
 	return nil

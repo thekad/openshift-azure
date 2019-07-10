@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MonitoringManagement version="1.0" namespace="{{ .Config.GenevaLoggingNamespace | XMLEscape }}" eventVersion="1" timestamp="2017-08-01T00:00:00.000Z">
+    <Accounts>
+        <Account moniker="{{ .Config.GenevaLoggingAccount | XMLEscape }}" isDefault="true" autoKey="false"/>
+    </Accounts>
+    <Management eventVolume="Large" defaultRetentionInDays="90">
+        <Identity tenantNameAlias="ResourceName" roleNameAlias="ResourceGroupName" roleInstanceNameAlias="SubscriptionId">
+            <IdentityComponent name="Region">{{ .ContainerService.Location | XMLEscape }}</IdentityComponent>
+            <IdentityComponent name="SubscriptionId">{{ .AzProfile.SubscriptionID | XMLEscape }}</IdentityComponent>
+            <IdentityComponent name="ResourceGroupName">{{ .AzProfile.ResourceGroup | XMLEscape }}</IdentityComponent>
+            <IdentityComponent name="ResourceName">{{ .ContainerService.Name | XMLEscape }}</IdentityComponent>
+        </Identity>
+        <AgentResourceUsage diskQuotaInMB="50000"/>
+    </Management>
+    <Sources>
+        <Source name="journald" dynamic_schema="true"/>
+        <Source name="audit" dynamic_schema="true"/>
+    </Sources>
+    <Events>
+        <MdsdEvents>
+            <MdsdEventSource source="journald">
+                <RouteEvent eventName="CustomerSyslogEvents" storeType="CentralBond" priority="High"/>
+            </MdsdEventSource>
+            <MdsdEventSource source="audit">
+                <RouteEvent eventName="CustomerAuditLogEvents" storeType="CentralBond" priority="High"/>
+            </MdsdEventSource>
+        </MdsdEvents>
+    </Events>
+</MonitoringManagement>
