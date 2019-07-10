@@ -175,12 +175,6 @@ var translations = map[string][]struct {
 			Template:   "{{ .Derived.OpenShiftVersionTag .ContainerService }}",
 		},
 	},
-	"ConfigMap/openshift-azure-logging/mdsd-config": {
-		{
-			Path:     jsonpath.MustCompile("$.data.'mdsd.xml'"),
-			Template: "{{ .Derived.MDSDConfig .ContainerService }}",
-		},
-	},
 	"ConfigMap/openshift-monitoring/cluster-monitoring-config": {
 		{
 			Path:       jsonpath.MustCompile("$.data.'config.yaml'"),
