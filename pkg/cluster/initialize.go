@@ -50,6 +50,7 @@ func (u *Upgrade) writeBlob(blobName string, cs *api.OpenShiftManagedCluster) er
 	return b.CreateBlockBlobFromReader(bytes.NewReader(json), nil)
 }
 
+// WriteStartupBlobs writes the blobs to the SA for all agent pool profiles
 func (u *Upgrade) WriteStartupBlobs() error {
 	u.Log.Info("writing startup blobs")
 	err := u.writeBlob(MasterStartupBlobName, u.Cs)
@@ -79,6 +80,7 @@ func (u *Upgrade) WriteStartupBlobs() error {
 				Ca: api.CertKeyPair{
 					Cert: u.Cs.Config.Certificates.Ca.Cert,
 				},
+				GenevaLogging: u.Cs.Config.Certificates.GenevaLogging,
 				NodeBootstrap: u.Cs.Config.Certificates.NodeBootstrap,
 			},
 			Images: api.ImageConfig{
@@ -100,6 +102,7 @@ func (u *Upgrade) WriteStartupBlobs() error {
 	return u.writeBlob(WorkerStartupBlobName, workerCS)
 }
 
+// CreateOrUpdateConfigStorageAccount creates a new storage account for config if missing
 func (u *Upgrade) CreateOrUpdateConfigStorageAccount(ctx context.Context) error {
 	u.Log.Info("creating/updating storage account")
 
@@ -151,6 +154,7 @@ func (u *Upgrade) CreateOrUpdateConfigStorageAccount(ctx context.Context) error 
 	return nil
 }
 
+// InitializeUpdateBlob sets some calculated values on the given blob
 func (u *Upgrade) InitializeUpdateBlob(suffix string) error {
 	blob := updateblob.NewUpdateBlob()
 	for _, app := range u.Cs.Properties.AgentPoolProfiles {
@@ -173,6 +177,7 @@ func (u *Upgrade) InitializeUpdateBlob(suffix string) error {
 	return u.UpdateBlobService.Write(blob)
 }
 
+// ResetUpdateBlob resets the update blob to its initial (default) state
 func (u *Upgrade) ResetUpdateBlob() error {
 	blob := updateblob.NewUpdateBlob()
 	return u.UpdateBlobService.Write(blob)
