@@ -115,6 +115,10 @@ base64 -d <<'EOF' | cat >/etc/yum.repos.d/azurecore.repo
 $(base64 <data/etc/yum.repos.d/azurecore.repo)
 EOF
 
+base64 -d <<'EOF' | cat >/etc/yum.repos.d/td.repo
+$(base64 <data/etc/yum.repos.d/td.repo)
+EOF
+
 cat >/var/lib/yum/client-cert.pem <<'EOF'
 $(cat client-cert.pem)
 EOF
@@ -171,7 +175,23 @@ yum -y install \
     yum-utils \
     azure-mdsd \
     azure-security \
-    azsec-monitor
+    azsec-monitor \
+    td-agent
+
+# we need to build the gem to support td-agent-mdsd integration, so we need gcc and etc
+yum -y groups install "Development Tools"
+
+# get and build the needed gems
+GEM_URL="https://github.com/Azure/fluentd-plugin-mdsd/releases/download/0.1.7/fluent-plugin-mdsd-0.1.7.master.59-td.amd64.gem"
+curl -O -L $GEM_URL
+/opt/td-agent/embedded/bin/fluent-gem uninstall -a fluent-plugin-rewrite-tag-filter
+/opt/td-agent/embedded/bin/fluent-gem install $(basename $GEM_URL)
+/opt/td-agent/embedded/bin/fluent-gem install fluent-plugin-systemd -v 0.0.11
+
+# get rid of dev tools and deps
+#yum -y groups remove "Development Tools"
+#yum -y autoremove
+
 yum clean all
 
 base64 -d <<'EOF' | tar -C / -x
@@ -183,6 +203,7 @@ mv /etc/docker/certs.d/docker-registry.default.svc-5000 /etc/docker/certs.d/dock
 
 rm -fv /etc/yum.repos.d/kickstart.repo \
   /etc/yum.repos.d/azurecore.repo \
+  /etc/yum.repos.d/td.repo \
   /var/lib/yum/client-cert.pem \
   /var/lib/yum/client-key.pem
 
