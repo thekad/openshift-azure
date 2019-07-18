@@ -135,22 +135,23 @@ func (s *startup) writeFiles(role api.AgentPoolProfileRole, w writers.Writer, ho
 			filepath = strings.TrimPrefix(filepath, "worker")
 		}
 
-		b, err := template.Template(filepath, tmpl, map[string]interface{}{
-			"Deref": func(pi *int) int { return *pi },
-			"XMLEscape": func(s string) (string, error) {
-				var b bytes.Buffer
-				err := xml.EscapeText(&b, []byte(s))
-				return b.String(), err
-			},
-		}, map[string]interface{}{
-			"ContainerService": s.cs,
-			"Config":           &s.cs.Config,
-			"AzProfile":        s.cs.Properties.AzProfile,
-			"Derived":          derived,
-			"Role":             role,
-			"Hostname":         hostname,
-			"DomainName":       domainname,
-		})
+		b, err := template.Template(filepath, tmpl,
+			map[string]interface{}{
+				"Deref": func(pi *int) int { return *pi },
+				"XMLEscape": func(s string) (string, error) {
+					var b bytes.Buffer
+					err := xml.EscapeText(&b, []byte(s))
+					return b.String(), err
+				},
+			}, map[string]interface{}{
+				"ContainerService": s.cs,
+				"Config":           &s.cs.Config,
+				"AzProfile":        s.cs.Properties.AzProfile,
+				"Derived":          derived,
+				"Role":             role,
+				"Hostname":         hostname,
+				"DomainName":       domainname,
+			})
 		if err != nil {
 			return err
 		}
