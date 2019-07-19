@@ -178,19 +178,22 @@ yum -y install \
     azsec-monitor \
     td-agent
 
-# we need to build the gem to support td-agent-mdsd integration, so we need gcc and etc
+# td-agent needs access to the journal
+usermod -a -G systemd-journal td-agent
+
+# openshift-audit dir ends up with wrong permissions, preemptively fix that
+mkdir -pv /var/log/openshift-audit
+chmod -v 0755 /var/log/openshift-audit
+
+# we need to build gems
 yum -y groups install "Development Tools"
 
-# get and build the needed gems
-GEM_URL="https://github.com/Azure/fluentd-plugin-mdsd/releases/download/0.1.7/fluent-plugin-mdsd-0.1.7.master.59-td.amd64.gem"
-curl -O -L $GEM_URL
-/opt/td-agent/embedded/bin/fluent-gem uninstall -a fluent-plugin-rewrite-tag-filter
-/opt/td-agent/embedded/bin/fluent-gem install $(basename $GEM_URL)
-/opt/td-agent/embedded/bin/fluent-gem install fluent-plugin-systemd -v 0.0.11
+# install the latest stable for td-agent3
+/opt/td-agent/embedded/bin/fluent-gem install fluent-plugin-systemd -v 1.0.1
 
-# get rid of dev tools and deps
-#yum -y groups remove "Development Tools"
-#yum -y autoremove
+# get rid of dev tools and dependencies
+yum -y groups remove "Development Tools"
+yum -y autoremove
 
 yum clean all
 
