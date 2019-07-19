@@ -2,14 +2,12 @@
 # Check 'mdsd -h' for details.
 
 MDSD_ROLE_PREFIX=/var/run/mdsd/default
-MDSD_OPTIONS="-d -A -r ${MDSD_ROLE_PREFIX}"
+MDSD_OPTIONS="-d -A -r ${MDSD_ROLE_PREFIX} -f 5001"
 
 # If this is changed, also change /etc/logrotate.d/mdsd
 MDSD_LOG=/var/log
 
 export SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
-
-export MONITORING_ROLE={{ .Role }}
 
 # REQUIRED
 # Geneva environment. Examples: Test, FirstPartyProd, DiagnosticsProd
